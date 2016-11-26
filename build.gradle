@@ -1,0 +1,48 @@
+group 'pm.hhp.api'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'checkstyle'
+
+
+sourceCompatibility = 1.8
+
+repositories {
+  mavenCentral()
+  maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+  compile group: 'com.github.HHPnet', name: 'jcore', version: '0.1.0'
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+
+  testCompile group: 'junit', name: 'junit', version: '4.11'
+  testCompile group: 'org.assertj', name: 'assertj-core', version: '3.5.2'
+  testCompile group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+  testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+}
+
+buildscript {
+  repositories {
+    mavenCentral()
+    maven { url 'https://plugins.gradle.org/m2/' }
+  }
+  dependencies {
+    classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.10'
+    classpath 'gradle.plugin.net.vivin:gradle-semantic-build-versioning:2.0.2'
+    classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.4.2.RELEASE'
+  }
+}
+
+apply plugin: 'info.solidsoft.pitest'
+apply plugin: 'net.vivin.gradle-semantic-build-versioning'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+
+checkstyle {
+  configFile = file('checkstyle.xml')
+  toolVersion = '7.1.2'
+  showViolations = true
+  ignoreFailures = false
+}
