@@ -21,11 +21,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 public class FakeFirebaseAuthenticationFilter extends OncePerRequestFilter implements AuthenticationFilter {
-  private static final String VALID_TOKEN = "USER_TOKEN";
-
-  private static final String USER_PRINCIPAL = "test";
-
-  private static final String USER_CREDENTIALS = "test@email.com";
+  private static final String VALID_TOKEN = "USERTOKEN";
 
   private final BearerTokenExtractor tokenExtractor;
 
@@ -54,13 +50,14 @@ public class FakeFirebaseAuthenticationFilter extends OncePerRequestFilter imple
   @Override
   public void authenticate(HttpServletRequest request) {
     Authentication authenticatedUser = tokenExtractor.extract(request);
-    if (Objects.isNull(authenticatedUser) || !VALID_TOKEN.equals(authenticatedUser.getPrincipal())) {
+    if (Objects.isNull(authenticatedUser) || !authenticatedUser.getPrincipal().toString().startsWith(VALID_TOKEN)) {
       throw new BadCredentialsException("Not valid token provided");
     }
 
+    String[] split = authenticatedUser.getPrincipal().toString().split("_");
     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            USER_PRINCIPAL,
-            USER_CREDENTIALS,
+            split[1].toLowerCase(),
+            split[2].toLowerCase(),
             Collections.singletonList(new FirebaseAuthority())
     );
 

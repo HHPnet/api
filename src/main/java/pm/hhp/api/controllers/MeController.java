@@ -35,6 +35,6 @@ public class MeController {
       throw new UsernameNotFoundException("User " + SecurityContextHolder.getContext().getAuthentication().getPrincipal() + " not found");
     }
 
-    return new ResponseEntity<UserResponse>(userResponse, HttpStatus.ACCEPTED);
+    return new ResponseEntity<UserResponse>(userResponse, HttpStatus.OK);
   }
 }

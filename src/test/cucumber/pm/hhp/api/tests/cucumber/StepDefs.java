@@ -13,8 +13,10 @@ import org.json.JSONObject;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -26,12 +28,14 @@ import java.util.IdentityHashMap;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.fail;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 
 @WebAppConfiguration
 @ContextConfiguration(locations = "classpath*:cucumber.xml", initializers = ConfigFileApplicationContextInitializer.class)
+@SpringBootTest
+@Sql
 public class StepDefs {
   @Autowired
   private WebApplicationContext wac;
@@ -53,17 +57,15 @@ public class StepDefs {
   @After
   public void tearDown() {
     mockMvc = null;
-    headers.clear();
+    response = null;
   }
 
-  protected ResultActions performWithHeaders(MockHttpServletRequestBuilder requestBuilder) throws Exception {
+  private ResultActions performWithHeaders(MockHttpServletRequestBuilder requestBuilder) throws Exception {
     return mockMvc.perform(setHeaders(requestBuilder));
-
   }
 
   private MockHttpServletRequestBuilder setBodyData(MockHttpServletRequestBuilder method, String data) throws JSONException {
-    return method.contentType(MediaType.APPLICATION_JSON_VALUE).content(new JSONObject(data)
-            .toString());
+    return method.contentType(MediaType.APPLICATION_JSON_VALUE).content(new JSONObject(data).toString());
   }
 
   private MockHttpServletRequestBuilder setHeaders(MockHttpServletRequestBuilder method) throws JSONException {
@@ -71,9 +73,18 @@ public class StepDefs {
       headers.entrySet().forEach(e -> {
         method.header(e.getKey(), e.getValue());
       });
+      headers.clear();
     }
 
     return method;
+  }
+
+  @Given("^request headers:$")
+  public void requestHeaders(String requestHeaders) throws Throwable {
+    new JsonParser().parse(requestHeaders)
+            .getAsJsonObject()
+            .entrySet()
+            .forEach(header -> headers.put(header.getKey(), header.getValue().toString().replace("\"", "")));
   }
 
   @When("^sending a get request to \"([^\"]*)\"$")
@@ -102,13 +113,5 @@ public class StepDefs {
       fail(" JSON expected:\n" + expected
               + "\nJSON server response:\n" + gson.toJson(new JsonParser().parse(serverResponse)));
     }
-  }
-
-  @Given("^request headers:$")
-  public void requestHeaders(String requestHeaders) throws Throwable {
-    new JsonParser().parse(requestHeaders)
-            .getAsJsonObject()
-            .entrySet()
-            .forEach(header -> headers.put(header.getKey(), header.getValue().toString().replace("\"", "")));
   }
 }

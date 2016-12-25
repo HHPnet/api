@@ -27,7 +27,11 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     parameters.addValue("name", user.getName());
     parameters.addValue("email", user.getEmail());
 
-    jdbcTemplate.update("INSERT INTO users VALUES (:user_id, :name, :email)", parameters);
+    jdbcTemplate.update(
+            "INSERT INTO users (user_id, name, email) VALUES (:user_id, :name, :email) "
+                    + "ON CONFLICT(user_id) DO UPDATE SET name = :name, email = :email, updated = CURRENT_TIMESTAMP",
+            parameters
+    );
 
     return user;
   }
