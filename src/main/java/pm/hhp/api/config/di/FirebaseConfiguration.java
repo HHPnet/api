@@ -12,6 +12,7 @@ import pm.hhp.api.config.authentication.firebase.FirebaseAuthenticationFilter;
 import pm.hhp.api.config.authentication.firebase.FirebaseAuthenticationUtils;
 import pm.hhp.api.config.authentication.firebase.FirebasePublicKeys;
 import pm.hhp.api.security.UnauthorizedAuthenticationEntryPoint;
+import pm.hhp.core.services.users.getprofile.GetUserProfileByEmailService;
 
 import java.security.cert.CertificateFactory;
 
@@ -37,12 +38,14 @@ public class FirebaseConfiguration {
   @Bean
   public AuthenticationFilter firebaseAuthenticationFilter(
           FirebaseAuthenticationUtils firebaseAuthenticationUtils,
-          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint
+          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint,
+          GetUserProfileByEmailService getUserProfileByEmailService
   ) throws Exception {
     return new FirebaseAuthenticationFilter(
             firebaseAuthenticationUtils,
             new BearerTokenExtractor(),
-            unauthorizedAuthenticationEntryPoint
+            unauthorizedAuthenticationEntryPoint,
+            getUserProfileByEmailService
     );
   }
 }

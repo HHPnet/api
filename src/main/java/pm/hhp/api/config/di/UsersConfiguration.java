@@ -7,9 +7,11 @@ import pm.hhp.api.infrastructure.repositories.jdbc.UserRepositoryJdbcImpl;
 import pm.hhp.api.infrastructure.repositories.jdbc.mappers.UserRowMapper;
 import pm.hhp.core.model.users.UserFactory;
 import pm.hhp.core.model.users.UserRepository;
+import pm.hhp.core.services.UserSession;
 import pm.hhp.core.services.users.create.CreateUserService;
 import pm.hhp.core.services.users.getprofile.GetUserProfileByEmailService;
 import pm.hhp.core.services.users.getprofile.GetUserProfileService;
+import pm.hhp.core.services.users.save.SaveUserService;
 
 @Configuration
 public class UsersConfiguration {
@@ -34,9 +36,19 @@ public class UsersConfiguration {
   @Bean
   public CreateUserService createUserService(
           UserRepository repository,
-          UserFactory factory
+          UserFactory factory,
+          UserSession userSession
   ) {
-    return new CreateUserService(repository, factory);
+    return new CreateUserService(repository, factory, userSession);
+  }
+
+  @Bean
+  public SaveUserService saveUserService(
+          UserRepository repository,
+          UserFactory factory,
+          UserSession userSession
+  ) {
+    return new SaveUserService(repository, factory, userSession);
   }
 
   @Bean

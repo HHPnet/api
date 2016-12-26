@@ -1,5 +1,6 @@
 package pm.hhp.api.infrastructure.repositories.jdbc;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import pm.hhp.api.infrastructure.repositories.jdbc.mappers.UserRowMapper;
@@ -27,13 +28,17 @@ public class UserRepositoryJdbcImpl implements UserRepository {
     parameters.addValue("name", user.getName());
     parameters.addValue("email", user.getEmail());
 
-    jdbcTemplate.update(
-            "INSERT INTO users (user_id, name, email) VALUES (:user_id, :name, :email) "
-                    + "ON CONFLICT(user_id) DO UPDATE SET name = :name, email = :email, updated = CURRENT_TIMESTAMP",
-            parameters
-    );
+    try {
+      jdbcTemplate.update(
+              "INSERT INTO users (user_id, name, email) VALUES (:user_id, :name, :email) "
+                      + "ON CONFLICT(user_id) DO UPDATE SET name = :name, email = :email, updated = CURRENT_TIMESTAMP",
+              parameters
+      );
 
-    return user;
+      return user;
+    } catch (DataAccessException dataException) {
+      return null;
+    }
   }
 
   @Override

@@ -13,6 +13,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.common.exceptions.UnauthorizedUserException;
 import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor;
 import pm.hhp.api.security.UnauthorizedAuthenticationEntryPoint;
+import pm.hhp.core.services.users.UserRequest;
+import pm.hhp.core.services.users.UserResponse;
+import pm.hhp.core.services.users.getprofile.GetUserProfileByEmailService;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -61,6 +64,12 @@ public class FirebaseAuthenticationFilterTest {
   @Mock
   private GrantedAuthority grantedAuthority;
 
+  @Mock
+  private GetUserProfileByEmailService getUserProfileByEmailService;
+
+  @Mock
+  private UserResponse userResponse;
+
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
@@ -68,7 +77,8 @@ public class FirebaseAuthenticationFilterTest {
     firebaseAuthenticationFilter = new FirebaseAuthenticationFilter(
             firebaseAuthenticationUtils,
             tokenExtractor,
-            unauthorizedAuthenticationEntryPoint
+            unauthorizedAuthenticationEntryPoint,
+            getUserProfileByEmailService
     );
 
     SecurityContextHolder.clearContext();
@@ -84,6 +94,8 @@ public class FirebaseAuthenticationFilterTest {
     request = null;
     chain = null;
     grantedAuthority = null;
+    getUserProfileByEmailService = null;
+    userResponse = null;
   }
 
   @Test
@@ -93,6 +105,7 @@ public class FirebaseAuthenticationFilterTest {
     doReturn(AUTHENTICATION_PRINCIPAL).when(authentication).getPrincipal();
     doReturn(AUTHENTICATION_CREDENTIALS).when(authentication).getCredentials();
     doReturn(Collections.singletonList(grantedAuthority)).when(authentication).getAuthorities();
+    doReturn(userResponse).when(getUserProfileByEmailService).execute(any(UserRequest.class));
 
     firebaseAuthenticationFilter.doFilter(request, response, chain);
     assertThat(SecurityContextHolder.getContext().getAuthentication()).isInstanceOf(UsernamePasswordAuthenticationToken.class);

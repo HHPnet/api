@@ -52,16 +52,18 @@ public class FirebaseAuthenticationUtils {
     if (Objects.nonNull(authentication)) {
       for (Map.Entry<String, JsonElement> entry: getPublicKeysJson().entrySet()) {
         try {
-          Claims claims = jwtParser.setSigningKey(getPublicKey(entry)).parseClaimsJws(authentication.getPrincipal().toString()).getBody();
+          Claims claims = jwtParser.setSigningKey(getPublicKey(entry))
+                  .parseClaimsJws(authentication.getPrincipal().toString()).getBody();
 
           return new PreAuthenticatedAuthenticationToken(
                   claims.get("name").toString(),
                   claims.get("email").toString(),
                   Collections.singletonList(new FirebaseAuthority())
           );
-        } catch (UnsupportedEncodingException | CertificateException | ExpiredJwtException | UnsupportedJwtException
-                | MalformedJwtException | SignatureException | IllegalArgumentException e) {
-          logger.warn(e.getMessage(), e);
+        } catch (UnsupportedEncodingException | CertificateException | ExpiredJwtException
+                | UnsupportedJwtException | MalformedJwtException | SignatureException
+                | IllegalArgumentException ex) {
+          logger.warn(ex.getMessage(), ex);
         }
       }
     }
@@ -69,9 +71,12 @@ public class FirebaseAuthenticationUtils {
     throw new UnauthorizedUserException("Provided token not valid user");
   }
 
-  private PublicKey getPublicKey(Map.Entry<String, JsonElement> entry) throws UnsupportedEncodingException, CertificateException {
+  private PublicKey getPublicKey(Map.Entry<String, JsonElement> entry)
+          throws UnsupportedEncodingException, CertificateException {
     return (certificateFactory.generateCertificate(
-                    new ByteArrayInputStream(entry.getValue().getAsString().getBytes("UTF-8"))
+                    new ByteArrayInputStream(
+                            entry.getValue().getAsString().getBytes("UTF-8")
+                    )
             )).getPublicKey();
   }
 

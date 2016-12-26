@@ -8,6 +8,7 @@ import cucumber.api.java.en.When;
 import gherkin.deps.com.google.gson.Gson;
 import gherkin.deps.com.google.gson.GsonBuilder;
 import gherkin.deps.com.google.gson.JsonParser;
+import org.flywaydb.core.Flyway;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -31,6 +32,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 @WebAppConfiguration
 @ContextConfiguration(locations = "classpath*:cucumber.xml", initializers = ConfigFileApplicationContextInitializer.class)
@@ -39,6 +41,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 public class StepDefs {
   @Autowired
   private WebApplicationContext wac;
+
+  @Autowired
+  private Flyway flyway;
 
   private MockMvc mockMvc;
 
@@ -52,12 +57,14 @@ public class StepDefs {
             .webAppContextSetup(wac)
             .apply(springSecurity())
             .build();
+    flyway.migrate();
   }
 
   @After
   public void tearDown() {
     mockMvc = null;
     response = null;
+    flyway.clean();
   }
 
   private ResultActions performWithHeaders(MockHttpServletRequestBuilder requestBuilder) throws Exception {
@@ -95,6 +102,11 @@ public class StepDefs {
   @When("^sending a post request to \"([^\"]*)\" with given data:$")
   public void sendingAPostRequestToWithGivenData(String url, String data) throws Throwable {
     response = performWithHeaders(setBodyData(post(url), data));
+  }
+
+  @When("^sending a put request to \"([^\"]*)\" with given data:$")
+  public void sendingAPutRequestToWithGivenData(String url, String data) throws Throwable {
+    response = performWithHeaders(setBodyData(put(url), data));
   }
 
   @Then("^response status should be (\\d+)$")

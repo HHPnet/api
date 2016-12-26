@@ -13,6 +13,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import pm.hhp.api.config.authentication.AuthenticationFilter;
 import pm.hhp.api.security.UnauthorizedAuthenticationEntryPoint;
+import pm.hhp.api.security.UserSessionImpl;
+import pm.hhp.core.services.UserSession;
 
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -37,6 +39,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   @Bean
   public JwtParser jwtParser() {
     return Jwts.parser();
+  }
+
+  @Bean
+  public UserSession userSession() {
+    return new UserSessionImpl();
   }
 
   @Override

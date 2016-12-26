@@ -11,6 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 import pm.hhp.api.config.authentication.AuthenticationFilter;
 import pm.hhp.api.security.UnauthorizedAuthenticationEntryPoint;
+import pm.hhp.core.services.users.UserRequest;
+import pm.hhp.core.services.users.getprofile.GetUserProfileByEmailService;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -20,43 +22,56 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
 
-public class FakeFirebaseAuthenticationFilter extends OncePerRequestFilter implements AuthenticationFilter {
+public class FakeFirebaseAuthenticationFilter extends OncePerRequestFilter implements
+        AuthenticationFilter {
   private static final String VALID_TOKEN = "USERTOKEN";
 
   private final BearerTokenExtractor tokenExtractor;
 
   private final UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint;
 
+  private final GetUserProfileByEmailService getUserProfileByEmailService;
+
   public FakeFirebaseAuthenticationFilter(
           BearerTokenExtractor tokenExtractor,
-          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint
+          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint,
+          GetUserProfileByEmailService getUserProfileByEmailService
   ) {
     this.tokenExtractor = tokenExtractor;
     this.unauthorizedAuthenticationEntryPoint = unauthorizedAuthenticationEntryPoint;
+    this.getUserProfileByEmailService = getUserProfileByEmailService;
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                  FilterChain filterChain) throws
           ServletException, IOException {
     try {
       authenticate(request);
       filterChain.doFilter(request, response);
     } catch (AuthenticationException | UnauthorizedUserException ex) {
-      unauthorizedAuthenticationEntryPoint.commence(request, response, new AuthenticationException(ex.getMessage()) {
-      });
+      unauthorizedAuthenticationEntryPoint.commence(
+              request,
+              response,
+              new AuthenticationException(ex.getMessage()) {}
+      );
     }
   }
 
   @Override
   public void authenticate(HttpServletRequest request) {
     Authentication authenticatedUser = tokenExtractor.extract(request);
-    if (Objects.isNull(authenticatedUser) || !authenticatedUser.getPrincipal().toString().startsWith(VALID_TOKEN)) {
+    if (Objects.isNull(authenticatedUser) || !authenticatedUser.getPrincipal().toString()
+            .startsWith(VALID_TOKEN)) {
       throw new BadCredentialsException("Not valid token provided");
     }
 
     String[] split = authenticatedUser.getPrincipal().toString().split("_");
     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            split[1].toLowerCase(),
+            getUserProfileByEmailService.execute(new UserRequest(
+                    split[1].toLowerCase(),
+                    split[2].toLowerCase()
+            )),
             split[2].toLowerCase(),
             Collections.singletonList(new FirebaseAuthority())
     );

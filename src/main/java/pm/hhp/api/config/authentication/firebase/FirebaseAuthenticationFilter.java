@@ -10,6 +10,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 import pm.hhp.api.config.authentication.AuthenticationFilter;
 import pm.hhp.api.security.UnauthorizedAuthenticationEntryPoint;
+import pm.hhp.core.services.users.UserRequest;
+import pm.hhp.core.services.users.getprofile.GetUserProfileByEmailService;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -25,14 +27,18 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter implement
 
   private final UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint;
 
+  private final GetUserProfileByEmailService getUserProfileByEmailService;
+
   public FirebaseAuthenticationFilter(
           FirebaseAuthenticationUtils firebaseAuthenticationUtils,
           BearerTokenExtractor tokenExtractor,
-          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint
+          UnauthorizedAuthenticationEntryPoint unauthorizedAuthenticationEntryPoint,
+          GetUserProfileByEmailService getUserProfileByEmailService
   ) {
     this.firebaseAuthenticationUtils = firebaseAuthenticationUtils;
     this.tokenExtractor = tokenExtractor;
     this.unauthorizedAuthenticationEntryPoint = unauthorizedAuthenticationEntryPoint;
+    this.getUserProfileByEmailService = getUserProfileByEmailService;
   }
 
   @Override
@@ -51,7 +57,10 @@ public class FirebaseAuthenticationFilter extends OncePerRequestFilter implement
     Authentication authenticatedUser = firebaseAuthenticationUtils.authenticate(tokenExtractor.extract(request));
     if (!Objects.isNull(authenticatedUser) && Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
       UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-              authenticatedUser.getPrincipal(),
+              getUserProfileByEmailService.execute(new UserRequest(
+                      authenticatedUser.getPrincipal().toString(),
+                      authenticatedUser.getCredentials().toString()
+              )),
               authenticatedUser.getCredentials(),
               authenticatedUser.getAuthorities()
       );
