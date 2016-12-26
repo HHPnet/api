@@ -10,5 +10,3 @@ script:
 - ./gradlew clean checkstyleMain test cucumber
 addons:
   postgresql: "9.6"
-before_script:
-  - cp src/main/resources/application-test.yml.travis src/main/resources/application-test.yml
