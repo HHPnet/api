@@ -11,4 +11,4 @@ script:
 addons:
   postgresql: "9.6"
 before_script:
-  - cp config/database.yml.travis config/database.yml
+  - cp src/main/resources/application-test.yml.travis src/main/resources/application-test.yml
