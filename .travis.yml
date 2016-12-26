@@ -1,8 +1,16 @@
+dist: trusty
+sudo: false
 language: java
 jdk:
 - oraclejdk8
+services:
+  - postgresql
 branches:
   only:
   - master
 script:
-- ./gradlew clean test checkstyleMain
+- ./gradlew clean checkstyleMain test cucumber
+addons:
+  postgresql: "9.6"
+before_script:
+    - psql -c 'create database hhpnet;' -U postgres

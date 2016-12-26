@@ -1,0 +1,33 @@
+server:
+  port: 9000
+management:
+  port: 9001
+  address: 127.0.0.1
+
+spring:
+  data:
+    jpa:
+      repositories:
+        enabled: false
+  jpa:
+    generate-ddl: false
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/
+    username: postgres
+    password: postgres
+    schema: hhpnet
+  database:
+    driverClassName: org.postgresql.Driver
+
+flyway:
+  enabled: true
+  locations: classpath:db/migration
+
+google:
+  publicKeys: https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com
+
+log4j:
+  category:
+    org:
+      springframework: ALL
