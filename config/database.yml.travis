@@ -1,0 +1,4 @@
+postgres:
+  adapter: postgresql
+  username: postgres
+  password: postgres
